@@ -42,25 +42,32 @@ export default function Calender() {
   }, []);
 
   const fetchEvenements = () => {
-    fetch(`/api/process/getEvenements.php?user_id=${localStorage.getItem("user_id")}`)
+    fetch(
+      `/api/process/getEvenements.php?user_id=${localStorage.getItem("user_id")}`,
+    )
       .then((res) => res.json())
       .then((data) => {
         const formatted = data.map((ev) => ({
           id: ev.id,
           title: ev.texte,
           start: `${ev.annee}-${String(ev.mois).padStart(2, "0")}-${String(ev.jour).padStart(2, "0")}`,
-          end: ev.jour_fin ? (() => {
-            const d = new Date(ev.annee_fin, ev.mois_fin - 1, ev.jour_fin);
-            d.setDate(d.getDate() + 1);
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          })() : null,
+          end: ev.jour_fin
+            ? (() => {
+                const d = new Date(ev.annee_fin, ev.mois_fin - 1, ev.jour_fin);
+                d.setDate(d.getDate() + 1);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+              })()
+            : null,
+          backgroundColor: ev.color ? `#${ev.color}` : "rgba(0, 0, 0, 0.8)",
         }));
         setEvents(formatted);
       });
   };
 
   const fetchPersonnes = () => {
-    fetch(`/api/process/getPersonnes.php?user_id=${localStorage.getItem("user_id")}`)
+    fetch(
+      `/api/process/getPersonnes.php?user_id=${localStorage.getItem("user_id")}`,
+    )
       .then((res) => res.json())
       .then((data) => setPersonnes(data));
   };
@@ -121,9 +128,9 @@ export default function Calender() {
               jour: start.getDate(),
               mois: start.getMonth() + 1,
               annee: start.getFullYear(),
-              jour_fin:  realEnd ? realEnd.getDate()      : start.getDate(),
-              mois_fin:  realEnd ? realEnd.getMonth() + 1 : start.getMonth() + 1,
-              annee_fin: realEnd ? realEnd.getFullYear()  : start.getFullYear(),
+              jour_fin: realEnd ? realEnd.getDate() : start.getDate(),
+              mois_fin: realEnd ? realEnd.getMonth() + 1 : start.getMonth() + 1,
+              annee_fin: realEnd ? realEnd.getFullYear() : start.getFullYear(),
             }),
           });
         }}
@@ -167,7 +174,7 @@ export default function Calender() {
         eventContent={(arg) => (
           <div
             style={{
-              background: "rgba(108, 99, 255, 0.8)",
+              background: arg.event.backgroundColor || "rgba(0, 0, 0, 0.8)",
               borderRadius: "6px",
               padding: "4px 8px",
               width: "100%",
@@ -213,6 +220,8 @@ export default function Calender() {
           setSelectedPersonne={setSelectedPersonne}
           handleAddPersonne={handleAddPersonne}
           handleDeletePersonne={handleDeletePersonne}
+          fetchPersonnes={fetchPersonnes}
+          fetchEvenements={fetchEvenements}
         />
       )}
     </div>
