@@ -153,16 +153,13 @@ body {
 }
 
 .fc-event {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.1s ease, opacity 0.1s ease;
 }
 
-.fc-event:hover {
-  transform: scale(1.02);
-}
 
 /* Animation quand un event apparaît */
 .fc-timegrid-event {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.1s ease;
 }
 
 /* Textes en blanc partout */
