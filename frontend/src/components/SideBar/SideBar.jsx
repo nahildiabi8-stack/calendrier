@@ -3,7 +3,7 @@ import { Draggable } from "@fullcalendar/interaction";
 import Bouton from "../Bouton/Bouton";
 import DropDown from "../DropDown/DropDown";
 import { Button } from "primereact/button";
-import { ColorPicker } from "primereact/colorpicker"; // ✅ import direct PrimeReact
+import { ColorPicker } from "primereact/colorpicker";
 
 export default function SideBar({
   personnes,
@@ -13,8 +13,9 @@ export default function SideBar({
   handleDeletePersonne,
   fetchPersonnes,
   fetchEvenements,
+  hiddenPersonnes, // ← ajout
+  setHiddenPersonnes, // ← ajout
 }) {
-  // ✅ Tous les hooks sont ICI, dans le corps du composant
   const [showDropdown, setShowDropdown] = useState(false);
   const [colors, setColors] = useState({});
   const [openPickerId, setOpenPickerId] = useState(null);
@@ -35,6 +36,32 @@ export default function SideBar({
       fetchPersonnes();
     });
   };
+  const toggleHidePersonne = (id) => {
+    setHiddenPersonnes((prev) => {
+      const newHidden = prev.includes(id)
+        ? prev.filter((p) => p !== id)
+        : [...prev, id];
+      // Sauvegarde en localStorage
+      localStorage.setItem("hiddenPersonnes", JSON.stringify(newHidden));
+      return newHidden;
+    });
+  };
+
+  // Au démarrage, charge depuis localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("hiddenPersonnes");
+    if (saved) {
+      setHiddenPersonnes(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    setHiddenPersonnes((prev) => {
+      const filtered = prev.filter((id) => personnes.some((p) => p.id === id));
+      localStorage.setItem("hiddenPersonnes", JSON.stringify(filtered));
+      return filtered;
+    });
+  }, [personnes]);
 
   useEffect(() => {
     const colorMap = {};
@@ -44,8 +71,9 @@ export default function SideBar({
       }
     });
     setColors(colorMap);
-    fetchEvenements(); // ✅ Ajoute ça pour refresh les événements
-  }, [personnes, fetchEvenements]); // ✅ Ajoute fetchEvenements aux dépendances
+    fetchEvenements();
+  }, [personnes, fetchEvenements]);
+
   useEffect(() => {
     if (!dragRef.current) return;
     const draggable = new Draggable(dragRef.current, {
@@ -87,6 +115,7 @@ export default function SideBar({
           setSelectedPersonne={setSelectedPersonne}
           handleAddPersonne={handleAddPersonne}
           handleDeletePersonne={handleDeletePersonne}
+          setHiddenPersonnes={setHiddenPersonnes} // ← ajout
         />
       )}
 
@@ -95,53 +124,113 @@ export default function SideBar({
           personnes.map((personne) => (
             <div
               key={personne.id}
-              style={{ position: "relative", marginBottom: "6px" }} // ✅ relative sur le wrapper
+              style={{ position: "relative", marginBottom: "6px" }}
             >
-              <div
-           
-                data-id={personne.id}
-                className="fc-event"
-                onClick={(e) => {
-                  e.stopPropagation(); // ✅ évite fermeture immédiate
-                  setOpenPickerId(
-                    openPickerId === personne.id ? null : personne.id,
-                  );
-                }}
-                style={{
-                  padding: "8px",
-                  background: colors[personne.id]
-                    ? `#${colors[personne.id]}`
-                    : personne.color
-                      ? `#${personne.color}`
-                      : "#3b82f6", // ✅ Ajoute ça
-                  color: "white",
-                  borderRadius: "4px",
-                  cursor: "grab",
-                  userSelect: "none",
-                }}
-                
-              >
-                {personne.nom}
-                
-              </div>
-
-              {openPickerId === personne.id && (
+              {!hiddenPersonnes.includes(personne.id) && (
                 <div
-                  style={{
-                    position: "absolute",
-                    zIndex: 10,
-                    top: "100%",
-                    left: 0,
+                  data-id={personne.id}
+                  className="fc-event flex flex-row flex-wrap align-items-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenPickerId(
+                      openPickerId === personne.id ? null : personne.id,
+                    );
                   }}
-                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    padding: "8px",
+                    display: "flex",
+                    flexDirection: "row",
+                    background: colors[personne.id]
+                      ? `#${colors[personne.id]}`
+                      : personne.color
+                        ? `#${personne.color}`
+                        : "#6C63FF",
+                    color: "white",
+                    borderRadius: "4px",
+                    cursor: "grab",
+                    userSelect: "none",
+                  }}
                 >
-                  <ColorPicker
-                    inline
-                    value={colors[personne.id] || "3b82f6"}
-                    onChange={(e) => handleColorChange(personne.id, e.value)}
-                  />
+                  {personne.nom}
+                  <div
+                    style={{
+                      display: "flex",
+                      flex: 1,
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHidePersonne(personne.id);
+                      }}
+                      icon="pi pi-eye"
+                      style={{
+                        height: "10px",
+                        background: "transparent",
+                        border: "none",
+                      }}
+                    />
+                  </div>
                 </div>
               )}
+
+              {hiddenPersonnes.includes(personne.id) && (
+                <div
+                  className="flex flex-row flex-wrap align-items-center"
+                  style={{
+                    paddingLeft: "8px",
+                    paddingRight: "8px",
+                    display: "flex",
+                    flexDirection: "row",
+                    background: colors[personne.id]
+                      ? `#${colors[personne.id]}`
+                      : personne.color
+                        ? `#${personne.color}`
+                        : "#6C63FF",
+                    color: "white",
+                    borderRadius: "4px",
+                    opacity: 0.5,
+                  }}
+                >
+                  {personne.nom}
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHidePersonne(personne.id);
+                      }}
+                      icon="pi pi-eye-slash"
+                      style={{ background: "transparent", border: "none" }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {openPickerId === personne.id &&
+                !hiddenPersonnes.includes(personne.id) && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      zIndex: 10,
+                      top: "100%",
+                      left: 0,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ColorPicker
+                      inline
+                      value={colors[personne.id] || "3b82f6"}
+                      onChange={(e) => handleColorChange(personne.id, e.value)}
+                    />
+                  </div>
+                )}
             </div>
           ))}
       </div>

@@ -7,7 +7,7 @@ export default function Bouton({ label, onClick, icon, style  }) {
     onClick();
   };
   return (
-    <div className="card flex flex-wrap justify-content-center ">
+    <div className="card flex flex-wrap justify-content-end ">
       <Button
         style={{ width: "100%", background: "#6c63ff", border: "none", ...style }}
         type="submit"

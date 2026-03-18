@@ -1,9 +1,11 @@
 import FullCalendar from "@fullcalendar/react";
+import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useEffect, useRef, useState } from "react";
 import SideBar from "../SideBar/SideBar";
 import Bouton from "../Bouton/Bouton";
+import frLocale from "@fullcalendar/core/locales/fr";
 
 export default function Calender() {
   const [showSideBar, setSideBar] = useState(false);
@@ -12,6 +14,7 @@ export default function Calender() {
   const [selectedPersonne, setSelectedPersonne] = useState(null);
   const [personnes, setPersonnes] = useState([]);
   const [events, setEvents] = useState([]);
+  const [hiddenPersonnes, setHiddenPersonnes] = useState([]);
 
   const handleEventLeave = (info) => {
     if (isDroppingRef.current) return;
@@ -50,19 +53,20 @@ export default function Calender() {
         const formatted = data.map((ev) => ({
           id: ev.id,
           title: ev.texte,
-          start: `${ev.annee}-${String(ev.mois).padStart(2, "0")}-${String(ev.jour).padStart(2, "0")}`,
-          end: ev.jour_fin
-            ? (() => {
-                const d = new Date(ev.annee_fin, ev.mois_fin - 1, ev.jour_fin);
-                d.setDate(d.getDate() + 1);
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-              })()
+          personne_id: ev.personne_id, // ← ajout
+          start: `${ev.annee}-${String(ev.mois).padStart(2, "0")}-${String(ev.jour).padStart(2, "0")}T${ev.heure_debut || "00:00"}`,
+          end: ev.heure_fin
+            ? `${ev.annee}-${String(ev.mois).padStart(2, "0")}-${String(ev.jour).padStart(2, "0")}T${ev.heure_fin}`
             : null,
-          backgroundColor: ev.color ? `#${ev.color}` : "rgba(0, 0, 0, 0.8)",
+          backgroundColor: ev.color ? `#${ev.color}` : "rgba(0,0,0,0.8)",
         }));
         setEvents(formatted);
       });
   };
+
+  const visibleEvents = events.filter(
+    (ev) => !hiddenPersonnes.includes(ev.personne_id),
+  );
 
   const fetchPersonnes = () => {
     fetch(
@@ -81,8 +85,16 @@ export default function Calender() {
       .then((res) => res.json())
       .then(() => fetchPersonnes());
   };
-
   const handleAddPersonne = () => {
+    const personneExistante = personnes.find((p) => p.nom === selectedPersonne);
+    if (personneExistante) {
+      setHiddenPersonnes((prev) => {
+        const newHidden = prev.filter((id) => id !== personneExistante.id);
+        localStorage.setItem("hiddenPersonnes", JSON.stringify(newHidden));
+        return newHidden;
+      });
+    }
+
     fetch("/api/process/addPersonnes.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -105,20 +117,16 @@ export default function Calender() {
       }}
     >
       <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        events={events}
+        initialView="timeGridWeek" // ou "timeGridDay"
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        events={visibleEvents} // ← change ça
         editable={true}
+        locale={frLocale}
         eventResizableFromStart={true}
         droppable={true}
         eventDrop={(info) => {
-          isDroppingRef.current = true;
-          setTimeout(() => (isDroppingRef.current = false), 0);
-
           const start = info.event.start;
           const end = info.event.end;
-          const realEnd = end ? new Date(end) : null;
-          if (realEnd) realEnd.setDate(realEnd.getDate() - 1);
 
           fetch("/api/process/updateDateEvenement.php", {
             method: "POST",
@@ -128,17 +136,16 @@ export default function Calender() {
               jour: start.getDate(),
               mois: start.getMonth() + 1,
               annee: start.getFullYear(),
-              jour_fin: realEnd ? realEnd.getDate() : start.getDate(),
-              mois_fin: realEnd ? realEnd.getMonth() + 1 : start.getMonth() + 1,
-              annee_fin: realEnd ? realEnd.getFullYear() : start.getFullYear(),
+              heure_debut: `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`,
+              heure_fin: end
+                ? `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`
+                : null,
             }),
           });
         }}
         eventResize={(info) => {
           const start = info.event.start;
           const end = info.event.end;
-          const realEnd = new Date(end);
-          realEnd.setDate(realEnd.getDate() - 1);
 
           fetch("/api/process/updateDateEvenement.php", {
             method: "POST",
@@ -148,9 +155,10 @@ export default function Calender() {
               jour: start.getDate(),
               mois: start.getMonth() + 1,
               annee: start.getFullYear(),
-              jour_fin: realEnd.getDate(),
-              mois_fin: realEnd.getMonth() + 1,
-              annee_fin: realEnd.getFullYear(),
+              heure_debut: `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`,
+              heure_fin: end
+                ? `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`
+                : null,
             }),
           });
         }}
@@ -165,6 +173,8 @@ export default function Calender() {
               jour: date.getDate(),
               mois: date.getMonth() + 1,
               annee: date.getFullYear(),
+              heure_debut: `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`,
+              heure_fin: `${String(date.getHours() + 1).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`,
               texte: info.event.title,
               personne_id: info.event.extendedProps.personne_id,
             }),
@@ -222,6 +232,9 @@ export default function Calender() {
           handleDeletePersonne={handleDeletePersonne}
           fetchPersonnes={fetchPersonnes}
           fetchEvenements={fetchEvenements}
+          hiddenPersonnes={hiddenPersonnes} // ← ajout
+          setHiddenPersonnes={setHiddenPersonnes} // ← ajout
+          events={visibleEvents} // ← pas events={events}
         />
       )}
     </div>

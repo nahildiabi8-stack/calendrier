@@ -151,3 +151,78 @@ body {
   box-shadow: none !important;
   border: none !important;
 }
+
+.fc-event {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.fc-event:hover {
+  transform: scale(1.02);
+}
+
+/* Animation quand un event apparaît */
+.fc-timegrid-event {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Textes en blanc partout */
+.fc {
+  color: white;
+}
+
+.fc-col-header-cell-cushion,
+.fc-timegrid-slot-label-cushion,
+.fc-daygrid-day-number,
+.fc-toolbar-title {
+  color: white !important;
+  text-decoration: none;
+}
+
+/* Toute la journée - fix le text serré */
+.fc-timegrid-axis-cushion {
+  white-space: normal !important;
+  font-size: 11px;
+  text-align: center;
+  max-width: 40px;
+}
+
+/* Lignes du calendrier plus subtiles */
+.fc-timegrid-slot {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.fc-timegrid-col {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+
+.fc-scrollgrid {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.fc-scrollgrid-section > td,
+.fc-scrollgrid-section > th {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Header jours */
+.fc-col-header-cell {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Aujourd'hui highlight */
+.fc-day-today {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Boutons navigation */
+.fc-button {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+}
+
+.fc-button:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+}

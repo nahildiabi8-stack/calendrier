@@ -6,18 +6,13 @@ export default function DropDown({
   setSelectedPersonne,
   handleAddPersonne,
   handleDeletePersonne,
+  setHiddenPersonnes,
 }) {
-  const itemTemplate = (option) => {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          width: "100%",
-        }}
-      >
-        <span>{option.nom}</span>
-
+ const itemTemplate = (option) => {
+  return (
+    <div style={{ display: "flex", width: "248px" }}>
+      <span>{option.nom}</span>
+      <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -33,15 +28,26 @@ export default function DropDown({
           X
         </button>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   return (
     <Dropdown
       options={personnes}
       optionLabel="nom"
       value={selectedPersonne}
-      onChange={(e) => setSelectedPersonne(e.value)}
+      onChange={(e) => {
+        const selected = e.value;
+        if (selected?.id) {
+          setHiddenPersonnes((prev) => {
+            const newHidden = prev.filter((id) => id !== selected.id);
+            localStorage.setItem("hiddenPersonnes", JSON.stringify(newHidden));
+            return newHidden;
+          });
+        }
+        setSelectedPersonne(selected);
+      }}
       editable
       placeholder="Ajoute un nom"
       itemTemplate={itemTemplate}

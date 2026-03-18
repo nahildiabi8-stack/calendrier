@@ -11,10 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $annee = $data["annee"];
     $texte = $data["texte"];
     $personne_id = $data["personne_id"];
+    $heure_debut = $data["heure_debut"];
+    $heure_fin = $data["heure_fin"];
 
-    $stmt = $conn->prepare("INSERT INTO evenements (user_id, personne_id, jour, mois, annee, texte)
-VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("iiiiis", $user_id, $personne_id, $jour, $mois, $annee, $texte);
+    $stmt = $conn->prepare("INSERT INTO evenements (user_id, personne_id, jour, mois, annee, texte, heure_debut, heure_fin)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("iiiiisss", $user_id, $personne_id, $jour, $mois, $annee, $texte, $heure_debut, $heure_fin);
     $stmt->execute();
 
    echo json_encode([
