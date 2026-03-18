@@ -9,7 +9,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<RegisterForm />} />
       <Route path="/login" element={<LoginForm />} />
-      <Route path="/calender" element={<MonCalendrier  />} />
+      <Route path="/calender" className="Calender"  element={<MonCalendrier  />} />
     </Routes>
   );
 }

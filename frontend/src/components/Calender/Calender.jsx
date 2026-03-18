@@ -117,6 +117,16 @@ export default function Calender() {
       }}
     >
       <FullCalendar
+        headerToolbar={{
+          left: "prev,next today",
+          center: "title",
+          right: "timeGridWeek,dayGridWeek,timeGridDay",
+        }}
+        views={{
+          timeGridWeek: { buttonText: "Semaine" },
+          dayGridWeek: { buttonText: "Semaine (jours)" },
+          timeGridDay: { buttonText: "Jour" },
+        }}
         initialView="timeGridWeek" // ou "timeGridDay"
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         events={visibleEvents} // ← change ça
@@ -127,6 +137,7 @@ export default function Calender() {
         eventDrop={(info) => {
           const start = info.event.start;
           const end = info.event.end;
+          const allDay = info.event.allDay;
 
           fetch("/api/process/updateDateEvenement.php", {
             method: "POST",
@@ -136,16 +147,33 @@ export default function Calender() {
               jour: start.getDate(),
               mois: start.getMonth() + 1,
               annee: start.getFullYear(),
-              heure_debut: `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`,
-              heure_fin: end
-                ? `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`
-                : null,
+              heure_debut: allDay
+                ? null
+                : `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`,
+              heure_fin: allDay
+                ? null
+                : end
+                  ? `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`
+                  : null,
+              jour_fin:
+                allDay && end
+                  ? new Date(end.getTime() - 86400000).getDate()
+                  : start.getDate(),
+              mois_fin:
+                allDay && end
+                  ? new Date(end.getTime() - 86400000).getMonth() + 1
+                  : start.getMonth() + 1,
+              annee_fin:
+                allDay && end
+                  ? new Date(end.getTime() - 86400000).getFullYear()
+                  : start.getFullYear(),
             }),
           });
         }}
         eventResize={(info) => {
           const start = info.event.start;
           const end = info.event.end;
+          const allDay = info.event.allDay;
 
           fetch("/api/process/updateDateEvenement.php", {
             method: "POST",
@@ -155,10 +183,26 @@ export default function Calender() {
               jour: start.getDate(),
               mois: start.getMonth() + 1,
               annee: start.getFullYear(),
-              heure_debut: `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`,
-              heure_fin: end
-                ? `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`
-                : null,
+              heure_debut: allDay
+                ? null
+                : `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`,
+              heure_fin: allDay
+                ? null
+                : end
+                  ? `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`
+                  : null,
+              jour_fin:
+                allDay && end
+                  ? new Date(end.getTime() - 86400000).getDate()
+                  : start.getDate(),
+              mois_fin:
+                allDay && end
+                  ? new Date(end.getTime() - 86400000).getMonth() + 1
+                  : start.getMonth() + 1,
+              annee_fin:
+                allDay && end
+                  ? new Date(end.getTime() - 86400000).getFullYear()
+                  : start.getFullYear(),
             }),
           });
         }}
